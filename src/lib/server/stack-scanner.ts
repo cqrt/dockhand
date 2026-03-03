@@ -9,6 +9,8 @@ import { readdirSync, existsSync, statSync, readFileSync } from 'node:fs';
 import { join, basename, dirname, resolve } from 'node:path';
 import yaml from 'js-yaml';
 import { getExternalStackPaths, getStackSources, upsertStackSource, type StackSourceType } from './db';
+import { DockerConnectionError } from './docker';
+import { normalizeStackName } from '$lib/utils/stack-name';
 
 // Compose file patterns to detect (in order of priority - prefer new style first)
 const COMPOSE_PATTERNS = ['compose.yaml', 'compose.yml', 'docker-compose.yml', 'docker-compose.yaml'];
@@ -41,16 +43,8 @@ export interface ScanResult {
 	errors: { path: string; error: string }[];
 }
 
-/**
- * Normalize a stack name to be valid (lowercase alphanumeric with hyphens/underscores)
- */
-export function normalizeStackName(name: string): string {
-	return name
-		.toLowerCase()
-		.replace(/[^a-z0-9_-]/g, '-')
-		.replace(/-+/g, '-')
-		.replace(/^-|-$/g, '');
-}
+// normalizeStackName re-exported for backward compatibility
+export { normalizeStackName } from '$lib/utils/stack-name';
 
 /**
  * Check if a file looks like a compose file (contains 'services:' key)
@@ -488,8 +482,11 @@ export async function detectRunningStacks(
 					runningStacksMap.set(stack.name, existing);
 				}
 			} catch (error) {
-				// Environment might be offline - skip silently
-				console.warn(`[Stack Scanner] Failed to query environment ${env.name}:`, error);
+				if (error instanceof DockerConnectionError) {
+					console.warn(`[Stack Scanner] Skipping offline environment ${env.name}: ${error.message}`);
+				} else {
+					console.warn(`[Stack Scanner] Failed to query environment ${env.name}:`, error);
+				}
 			}
 		})
 	);

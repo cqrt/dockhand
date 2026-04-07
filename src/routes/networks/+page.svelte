@@ -9,7 +9,7 @@
 	import { Button } from '$lib/components/ui/button';
 	import { Input } from '$lib/components/ui/input';
 	import MultiSelectFilter from '$lib/components/MultiSelectFilter.svelte';
-	import { Trash2, Search, Plus, Eye, Check, XCircle, RefreshCw, Icon, AlertTriangle, X, Network, Link, Copy, CopyPlus, Share2, Server, Globe, MonitorSmartphone, Cpu, CircleOff } from 'lucide-svelte';
+	import { Trash2, Search, Plus, Eye, Check, XCircle, RefreshCw, Icon, AlertTriangle, X, Network, Link, Copy, CopyPlus, Share2, Server, Globe, MonitorSmartphone, Cpu, CircleOff, GitGraph } from 'lucide-svelte';
 	import { broom } from '@lucide/lab';
 	import { copyToClipboard } from '$lib/utils/clipboard';
 	import ConfirmPopover from '$lib/components/ConfirmPopover.svelte';
@@ -25,6 +25,7 @@
 	import PageHeader from '$lib/components/PageHeader.svelte';
 	import { DataGrid } from '$lib/components/data-grid';
 	import { ipToNumber } from '$lib/utils/ip';
+	import NetworkGraphModal from './NetworkGraphModal.svelte';
 
 	type SortField = 'name' | 'driver' | 'containers' | 'subnet' | 'gateway';
 	type SortDirection = 'asc' | 'desc';
@@ -83,6 +84,7 @@
 	let showCreateModal = $state(false);
 	let showInspectModal = $state(false);
 	let showConnectModal = $state(false);
+	let showGraphModal = $state(false);
 	let inspectNetworkId = $state('');
 	let inspectNetworkName = $state('');
 	let connectNetwork = $state<NetworkInfo | null>(null);
@@ -351,6 +353,10 @@
 		showConnectModal = true;
 	}
 
+	function openGraphModal() {
+		showGraphModal = true;
+	}
+
 	async function disconnectContainer(networkId: string, networkName: string, containerId: string, containerName: string) {
 		disconnectingContainerId = containerId;
 		try {
@@ -554,6 +560,10 @@
 				<RefreshCw class="w-3.5 h-3.5" />
 				Refresh
 			</Button>
+			<Button size="sm" variant="secondary" onclick={openGraphModal}>
+				<GitGraph class="w-3.5 h-3.5" />
+				View Graph
+			</Button>
 			{#if $canAccess('networks', 'create')}
 			<Button size="sm" variant="secondary" onclick={() => showCreateModal = true}>
 				<Plus class="w-3.5 h-3.5" />
@@ -741,4 +751,13 @@
 	envId={envId ?? undefined}
 	onClose={() => showBatchOpModal = false}
 	onComplete={handleBatchComplete}
+/>
+
+<!-- Edit Stack Modal -->
+<NetworkGraphModal
+	bind:open={showGraphModal}
+	networks={networks}
+	onClose={() => {
+		showGraphModal = false;
+	}}
 />

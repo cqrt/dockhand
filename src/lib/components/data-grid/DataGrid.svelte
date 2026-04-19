@@ -329,18 +329,36 @@
 		onExpandChange?.(key, nowExpanded);
 	}
 
+	// Sort persistence
+	const SORT_STORAGE_KEY = `dockhand-${gridId}-sort`;
+
+	// Restore saved sort on init (only if parent didn't provide explicit initial sort via sortState)
+	if (onSortChange && sortState) {
+		try {
+			const saved = localStorage.getItem(SORT_STORAGE_KEY);
+			if (saved) {
+				const parsed = JSON.parse(saved) as DataGridSortState;
+				if (parsed.field && parsed.direction) {
+					onSortChange(parsed);
+				}
+			}
+		} catch {}
+	}
+
+	function saveSortState(state: DataGridSortState) {
+		try { localStorage.setItem(SORT_STORAGE_KEY, JSON.stringify(state)); } catch {}
+	}
+
 	// Sort helpers
 	function toggleSort(field: string) {
 		if (!onSortChange) return;
 
-		if (sortState?.field === field) {
-			onSortChange({
-				field,
-				direction: sortState.direction === 'asc' ? 'desc' : 'asc'
-			});
-		} else {
-			onSortChange({ field, direction: 'asc' });
-		}
+		const newState: DataGridSortState = sortState?.field === field
+			? { field, direction: sortState.direction === 'asc' ? 'desc' : 'asc' }
+			: { field, direction: 'asc' };
+
+		saveSortState(newState);
+		onSortChange(newState);
 	}
 
 	// Virtual scroll state

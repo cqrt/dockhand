@@ -995,6 +995,8 @@
 			name = ''; // Reset to prevent showing stale name in header
 			statusMessage = '';
 			error = '';
+			startAfterUpdate = true;
+        	repullImage = true;
 			hasLoadedData = true;
 			loadContainerData();
 			fetchConfigSets();

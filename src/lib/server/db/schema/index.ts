@@ -128,6 +128,7 @@ export const autoUpdateSettings = sqliteTable('auto_update_settings', {
 	scheduleType: text('schedule_type').default('daily'),
 	cronExpression: text('cron_expression'),
 	vulnerabilityCriteria: text('vulnerability_criteria').default('never'), // 'never' | 'any' | 'critical_high' | 'critical' | 'more_than_current'
+	startAfterUpdate: integer('start_after_update', { mode: 'boolean' }).default(true),
 	lastChecked: text('last_checked'),
 	lastUpdated: text('last_updated'),
 	createdAt: text('created_at').default(sql`CURRENT_TIMESTAMP`),

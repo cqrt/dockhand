@@ -617,6 +617,7 @@ export interface AutoUpdateSettingData {
 	scheduleType: 'daily' | 'weekly' | 'custom';
 	cronExpression: string | null;
 	vulnerabilityCriteria: VulnerabilityCriteria | null;
+	startAfterUpdate: boolean | null;
 	lastChecked: string | null;
 	lastUpdated: string | null;
 	createdAt: string;
@@ -672,6 +673,7 @@ export async function upsertAutoUpdateSetting(
 		scheduleType: 'daily' | 'weekly' | 'custom';
 		cronExpression?: string | null;
 		vulnerabilityCriteria?: VulnerabilityCriteria | null;
+		startAfterUpdate?: boolean;
 	},
 	environmentId?: number
 ): Promise<AutoUpdateSettingData> {
@@ -684,6 +686,7 @@ export async function upsertAutoUpdateSetting(
 				scheduleType: settingsData.scheduleType,
 				cronExpression: settingsData.cronExpression || null,
 				vulnerabilityCriteria: settingsData.vulnerabilityCriteria || 'never',
+				startAfterUpdate: settingsData.startAfterUpdate ?? true,
 				updatedAt: new Date().toISOString()
 			})
 			.where(eq(autoUpdateSettings.id, existing.id));
@@ -695,7 +698,8 @@ export async function upsertAutoUpdateSetting(
 			enabled: settingsData.enabled,
 			scheduleType: settingsData.scheduleType,
 			cronExpression: settingsData.cronExpression || null,
-			vulnerabilityCriteria: settingsData.vulnerabilityCriteria || 'never'
+			vulnerabilityCriteria: settingsData.vulnerabilityCriteria || 'never',
+			startAfterUpdate: settingsData.startAfterUpdate ?? true
 		});
 		return getAutoUpdateSetting(containerName, environmentId) as Promise<AutoUpdateSettingData>;
 	}

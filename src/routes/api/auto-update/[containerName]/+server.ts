@@ -22,7 +22,8 @@ export const GET: RequestHandler = async ({ params, url }) => {
 				enabled: false,
 				scheduleType: 'daily',
 				cronExpression: '0 3 * * *',
-				vulnerabilityCriteria: 'never'
+				vulnerabilityCriteria: 'never',
+				startAfterUpdate: true
 			});
 		}
 
@@ -31,7 +32,8 @@ export const GET: RequestHandler = async ({ params, url }) => {
 			...setting,
 			scheduleType: setting.scheduleType,
 			cronExpression: setting.cronExpression,
-			vulnerabilityCriteria: setting.vulnerabilityCriteria || 'never'
+			vulnerabilityCriteria: setting.vulnerabilityCriteria || 'never',
+			startAfterUpdate: setting.startAfterUpdate ?? true
 		});
 	} catch (error) {
 		console.error('Failed to get auto-update setting:', error);
@@ -55,12 +57,7 @@ export const POST: RequestHandler = async ({ params, url, request, cookies }) =>
 		const enabled = body.enabled;
 		const cronExpression = body.cronExpression ?? body.cron_expression;
 		const vulnerabilityCriteria = body.vulnerabilityCriteria ?? body.vulnerability_criteria;
-
-		// Hard delete when disabled
-		if (enabled === false) {
-			await deleteAutoUpdateSchedule(containerName, envId);
-			return json({ success: true, deleted: true });
-		}
+		const startAfterUpdate = body.startAfterUpdate ?? true;
 
 		// Auto-detect schedule type from cron expression for backward compatibility
 		let scheduleType: 'daily' | 'weekly' | 'custom' = 'custom';
@@ -82,7 +79,8 @@ export const POST: RequestHandler = async ({ params, url, request, cookies }) =>
 				enabled: Boolean(enabled),
 				scheduleType: scheduleType,
 				cronExpression: cronExpression || null,
-				vulnerabilityCriteria: vulnerabilityCriteria || 'never'
+				vulnerabilityCriteria: vulnerabilityCriteria || 'never',
+				startAfterUpdate: Boolean(startAfterUpdate)
 			},
 			envId
 		);
@@ -99,7 +97,8 @@ export const POST: RequestHandler = async ({ params, url, request, cookies }) =>
 			...setting,
 			scheduleType: setting.scheduleType,
 			cronExpression: setting.cronExpression,
-			vulnerabilityCriteria: setting.vulnerabilityCriteria || 'never'
+			vulnerabilityCriteria: setting.vulnerabilityCriteria || 'never',
+			startAfterUpdate: setting.startAfterUpdate ?? true
 		});
 	} catch (error) {
 		console.error('Failed to save auto-update setting:', error);

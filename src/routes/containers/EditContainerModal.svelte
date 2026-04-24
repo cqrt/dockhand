@@ -223,6 +223,7 @@
 		enabled: boolean;
 		cronExpression: string;
 		vulnerabilityCriteria: string;
+		startAfterUpdate: boolean;
 	} | null>(null);
 
 	let loading = $state(false);
@@ -305,10 +306,12 @@
 				autoUpdateEnabled = data.enabled || false;
 				autoUpdateCronExpression = data.cronExpression || '0 3 * * *';
 				vulnerabilityCriteria = data.vulnerabilityCriteria || 'never';
+				startAfterUpdate = data.startAfterUpdate ?? true;
 				originalAutoUpdate = {
 					enabled: autoUpdateEnabled,
 					cronExpression: autoUpdateCronExpression,
-					vulnerabilityCriteria: vulnerabilityCriteria
+					vulnerabilityCriteria: vulnerabilityCriteria,
+					startAfterUpdate: startAfterUpdate
 				};
 			}
 		} catch (err) {
@@ -325,7 +328,8 @@
 				body: JSON.stringify({
 					enabled: autoUpdateEnabled,
 					cronExpression: autoUpdateCronExpression,
-					vulnerabilityCriteria: vulnerabilityCriteria
+					vulnerabilityCriteria: vulnerabilityCriteria,
+					startAfterUpdate: startAfterUpdate
 				})
 			});
 		} catch (err) {
@@ -687,7 +691,8 @@
 		return (
 			autoUpdateEnabled !== originalAutoUpdate.enabled ||
 			autoUpdateCronExpression !== originalAutoUpdate.cronExpression ||
-			vulnerabilityCriteria !== originalAutoUpdate.vulnerabilityCriteria
+			vulnerabilityCriteria !== originalAutoUpdate.vulnerabilityCriteria ||
+			startAfterUpdate !== originalAutoUpdate.startAfterUpdate
 		);
 	}
 

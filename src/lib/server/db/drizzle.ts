@@ -583,6 +583,41 @@ function handleMigrationFailure(error: string, postgres: boolean): never {
 }
 
 // =============================================================================
+// DEFENSIVE SCHEMA CHECKS
+// =============================================================================
+
+/**
+ * Verify critical columns exist and add them if missing.
+ * This is a fallback for cases where Drizzle's migrator records a migration
+ * in __drizzle_migrations but the DDL doesn't persist (e.g. WAL-mode issues
+ * on Docker Desktop / WSL2 volume mounts).
+ */
+function ensureCriticalColumns(client: any): void {
+	const checks: { table: string; column: string; sql: string }[] = [
+		{
+			table: 'auto_update_settings',
+			column: 'start_after_update',
+			sql: 'ALTER TABLE auto_update_settings ADD COLUMN start_after_update INTEGER DEFAULT 1'
+		}
+	];
+
+	for (const check of checks) {
+		try {
+			const columns = client.prepare(`PRAGMA table_info(${check.table})`).all() as { name: string }[];
+			const exists = columns.some(col => col.name === check.column);
+			if (!exists) {
+				console.log(`[DB] Fallback: adding missing column ${check.table}.${check.column}`);
+				client.exec(check.sql);
+				logSuccess(`Fallback applied: ${check.table}.${check.column}`);
+			}
+		} catch (error) {
+			const msg = error instanceof Error ? error.message : String(error);
+			console.error(`[DB] Fallback column check failed for ${check.table}.${check.column}: ${msg}`);
+		}
+	}
+}
+
+// =============================================================================
 // DATABASE INITIALIZATION
 // =============================================================================
 
@@ -671,6 +706,10 @@ async function initializeDatabase() {
 		if (!result.success && result.error) {
 			handleMigrationFailure(result.error, false);
 		}
+
+		// Defensive column check — guards against WAL-mode commits that don't
+		// persist on Docker Desktop / WSL2 volume mounts.
+		ensureCriticalColumns(rawClient);
 	}
 
 	initialized = true;

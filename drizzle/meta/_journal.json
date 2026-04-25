@@ -43,6 +43,13 @@
       "when": 1775311743346,
       "tag": "0005_add_api_tokens",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "6",
+      "when": 1745536800000,
+      "tag": "0006_add_start_after_update",
+      "breakpoints": true
     }
   ]
 }
